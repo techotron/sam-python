@@ -73,3 +73,11 @@ To test the actual endpoint in a single command:
 ```bash
 curl $(aws cloudformation describe-stacks --stack-name sam-python --query 'Stacks[].Outputs[?OutputKey == `ReturnCertExpiry`].OutputValue[]' --output=text )/certchecker
 ```
+
+## Deleting the Stack
+
+To delete the stack and the resources that it created, just issue the following command:
+
+```bash
+aws cloudformation delete-stack --stack-name sam-python
+```
