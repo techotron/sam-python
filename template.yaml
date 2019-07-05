@@ -19,7 +19,7 @@ Resources:
         ReturnCertExpiry:
           Type: Api
           Properties:
-            Path: /
+            Path: /certchecker
             Method: get
 
 Outputs:
