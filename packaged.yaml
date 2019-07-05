@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Python SAM Application
+Globals:
+  Function:
+    Timeout: 3
+Outputs:
+  ReturnCertExpiry:
+    Description: API Gateway endpoint URL for Prod stage for Return Cert Expiry function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+  ReturnCertExpiryFunction:
+    Description: Return Cert Expiry Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - ReturnCertExpiryFunction
+      - Arn
+  ReturnCertExpiryFunctionIamRole:
+    Description: Implicit IAM Role created for Return Cert Expiry function
+    Value:
+      Fn::GetAtt:
+      - ReturnCertExpiryFunctionRole
+      - Arn
+Resources:
+  ReturnCertExpiryFunction:
+    Properties:
+      CodeUri: s3://snowco-sam-eu-west-1/6dc94d8800f18ccee45fac149e07fbbb
+      Events:
+        ReturnCertExpiry:
+          Properties:
+            Method: get
+            Path: /certchecker
+          Type: Api
+      Handler: app.lambda_handler
+      Runtime: python3.7
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
