@@ -65,13 +65,13 @@ The URL for the API gateway is returned as an output to the CFN stack which we c
 ```bash
 aws cloudformation describe-stacks \
     --stack-name sam-python \
-    --query 'Stacks[].Outputs[?OutputKey == `ReturnCertExpiry`].OutputValue[]' --output=text 
+    --query 'Stacks[].Outputs[?OutputKey == `ReturnTest`].OutputValue[]' --output=text 
 ```
 
 To test the actual endpoint in a single command:
 
 ```bash
-curl $(aws cloudformation describe-stacks --stack-name sam-python --query 'Stacks[].Outputs[?OutputKey == `ReturnCertExpiry`].OutputValue[]' --output=text )/certchecker
+curl $(aws cloudformation describe-stacks --stack-name sam-python --query 'Stacks[].Outputs[?OutputKey == `ReturnTest`].OutputValue[]' --output=text )/test
 ```
 
 ## Deleting the Stack

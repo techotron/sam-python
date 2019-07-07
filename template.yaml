@@ -4,31 +4,67 @@ Transform: AWS::Serverless-2016-10-31
 
 Description: Python SAM Application
 
+Parameters:
+  DdbTableName:
+    Description: Name of DDB table
+    Type: String
+    Default: quote-table
+
 Globals:
   Function:
     Timeout: 3
+    Runtime: python3.7
 
 Resources:
-  ReturnCertExpiryFunction:
+  ReturnTestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: return_cert_expiry/
+      CodeUri: return_test/
       Handler: app.lambda_handler
-      Runtime: python3.7
       Events:
-        ReturnCertExpiry:
+        ReturnTest:
           Type: Api
           Properties:
-            Path: /certchecker
+            Path: /test
             Method: get
 
+  ReadTableFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: read_table/
+      Handler: app.lambda_handler
+      Policies:
+        - Version: '2012-10-17' # Policy Document
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:*
+              Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DdbTableName}'
+      Events:
+        ReturnTest:
+          Type: Api
+          Properties:
+            Path: /read
+            Method: get
+
+  DdbTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: !Ref DdbTableName
+
 Outputs:
-  ReturnCertExpiry:
-    Description: "API Gateway endpoint URL for Prod stage for Return Cert Expiry function"
+  ReturnTest:
+    Description: "API Gateway endpoint URL for Prod stage for Return Test function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  ReturnCertExpiryFunction:
-    Description: "Return Cert Expiry Lambda Function ARN"
-    Value: !GetAtt ReturnCertExpiryFunction.Arn
-  ReturnCertExpiryFunctionIamRole:
-    Description: "Implicit IAM Role created for Return Cert Expiry function"
-    Value: !GetAtt ReturnCertExpiryFunctionRole.Arn
+  ReturnTestFunction:
+    Description: "Return Test Lambda Function ARN"
+    Value: !GetAtt ReturnTestFunction.Arn
+  ReturnTestFunctionIamRole:
+    Description: "Implicit IAM Role created for Return Test function"
+    Value: !GetAtt ReturnTestFunctionRole.Arn

@@ -2,35 +2,70 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Python SAM Application
 Globals:
   Function:
+    Runtime: python3.7
     Timeout: 3
 Outputs:
-  ReturnCertExpiry:
-    Description: API Gateway endpoint URL for Prod stage for Return Cert Expiry function
+  ReturnTest:
+    Description: API Gateway endpoint URL for Prod stage for Return Test function
     Value:
       Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
-  ReturnCertExpiryFunction:
-    Description: Return Cert Expiry Lambda Function ARN
+  ReturnTestFunction:
+    Description: Return Test Lambda Function ARN
     Value:
       Fn::GetAtt:
-      - ReturnCertExpiryFunction
+      - ReturnTestFunction
       - Arn
-  ReturnCertExpiryFunctionIamRole:
-    Description: Implicit IAM Role created for Return Cert Expiry function
+  ReturnTestFunctionIamRole:
+    Description: Implicit IAM Role created for Return Test function
     Value:
       Fn::GetAtt:
-      - ReturnCertExpiryFunctionRole
+      - ReturnTestFunctionRole
       - Arn
+Parameters:
+  DdbTableName:
+    Default: quote-table
+    Description: Name of DDB table
+    Type: String
 Resources:
-  ReturnCertExpiryFunction:
+  DdbTable:
     Properties:
-      CodeUri: s3://snowco-sam-eu-west-1/835535c6f59f5b8e3ebde1aa0a88016d
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName:
+        Ref: DdbTableName
+    Type: AWS::Serverless::SimpleTable
+  ReadTableFunction:
+    Properties:
+      CodeUri: s3://snowco-sam-eu-west-1/62d64ca6a75831b47356d638e12b6b27
       Events:
-        ReturnCertExpiry:
+        ReturnTest:
           Properties:
             Method: get
-            Path: /certchecker
+            Path: /read
           Type: Api
       Handler: app.lambda_handler
-      Runtime: python3.7
+      Policies:
+      - Statement:
+        - Action:
+          - dynamodb:*
+          Effect: Allow
+          Resource:
+            Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DdbTableName}
+        Version: '2012-10-17'
+    Type: AWS::Serverless::Function
+  ReturnTestFunction:
+    Properties:
+      CodeUri: s3://snowco-sam-eu-west-1/bb5f24955a0c4d4ff83e06d6f73a17f4
+      Events:
+        ReturnTest:
+          Properties:
+            Method: get
+            Path: /test
+          Type: Api
+      Handler: app.lambda_handler
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
