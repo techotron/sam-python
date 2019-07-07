@@ -23,7 +23,7 @@ Outputs:
 Resources:
   ReturnCertExpiryFunction:
     Properties:
-      CodeUri: s3://snowco-sam-eu-west-1/6dc94d8800f18ccee45fac149e07fbbb
+      CodeUri: s3://snowco-sam-eu-west-1/835535c6f59f5b8e3ebde1aa0a88016d
       Events:
         ReturnCertExpiry:
           Properties:
