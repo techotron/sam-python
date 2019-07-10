@@ -1,12 +1,13 @@
 import json
 import requests
+import os
 
+app_version = os.getenv("APP_VERSION")
 
-def lambda_handler(event, context):
+def who_dis(event, context):
     try:
         ip = requests.get("http://checkip.amazonaws.com/")
     except requests.RequestException as e:
-        # Send some context about this error to Lambda Logs
         print(e)
 
         raise e
@@ -14,11 +15,8 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "hello world",
+            "message": "Whoop whoop! This is the sound of the Python",
+            "version": app_version,
             "location": ip.text.replace("\n", "")
         }),
     }
-
-
-if __name__ == "__main__":
-    lambda_handler()

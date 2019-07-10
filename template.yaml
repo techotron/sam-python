@@ -1,34 +1,121 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Description: Serverless Application Model - Python Application
+
 Transform: AWS::Serverless-2016-10-31
 
-Description: Python SAM Application
+Parameters:
+  Environment:
+    Description: Name of the environment to deploy to
+    Default: dev
+    Type: String
+
+  AppVersion:
+    Description: Version of the application
+    Default: v1
+    Type: String
 
 Globals:
   Function:
     Timeout: 3
+    Runtime: python3.7
+    Environment:
+      Variables:
+        APP_VERSION: !Ref AppVersion
 
 Resources:
-  ReturnCertExpiryFunction:
+  WhoDisFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: return_cert_expiry/
-      Handler: app.lambda_handler
-      Runtime: python3.7
+      CodeUri: whodis/
+      Handler: app.who_dis
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: Canary10Percent5Minutes
       Events:
-        ReturnCertExpiry:
+        WhoDis:
           Type: Api
           Properties:
-            Path: /certchecker
+            Path: /whodis
             Method: get
 
+  OleoleoleApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: oleoleoleApi
+      StageName: !Ref Environment
+
+  OleOleOleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: oleoleole/
+      Handler: app.oleoleole
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+        Hooks:
+          PreTraffic: !Ref OleoleolePreTrafficHookFunction
+          PostTraffic: !Ref OleoleolePostTrafficHookFunction
+      Events:
+        Oleoleole:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OleoleoleApi
+            Path: /oleoleole
+            Method: get
+
+  OleoleolePreTrafficHookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: oleoleole/
+      Handler: test_handler.test_oleoleole_version_pre_traffic
+      FunctionName: 'CodeDeployHook_preTrafficHook'
+      DeploymentPreference:
+        Enabled: false
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - codedeploy:PutLifecycleEventHookExecutionStatus
+              Resource: "*"
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref OleOleOleFunction.Version
+      Environment:
+        Variables:
+          CurrentFunctionVersion: !Ref OleOleOleFunction.Version
+
+  OleoleolePostTrafficHookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: oleoleole/
+      Handler: test_handler.test_oleoleole_version_post_traffic
+      FunctionName: 'CodeDeployHook_postTrafficHook'
+      DeploymentPreference:
+        Enabled: false
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - codedeploy:PutLifecycleEventHookExecutionStatus
+              Resource: "*"
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref OleOleOleFunction.Version
+
 Outputs:
-  ReturnCertExpiry:
-    Description: "API Gateway endpoint URL for Prod stage for Return Cert Expiry function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  ReturnCertExpiryFunction:
-    Description: "Return Cert Expiry Lambda Function ARN"
-    Value: !GetAtt ReturnCertExpiryFunction.Arn
-  ReturnCertExpiryFunctionIamRole:
-    Description: "Implicit IAM Role created for Return Cert Expiry function"
-    Value: !GetAtt ReturnCertExpiryFunctionRole.Arn
+  WhoDisApi:
+    Description: "API Gateway endpoint URL for the Who Dis function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/whodis/"
+
+  OleoleoleApi:
+    Description: "API Gateway endpoint URL for the Oleoleole function"
+    Value: !Sub "https://${OleoleoleApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/oleoleole/"

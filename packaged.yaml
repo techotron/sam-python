@@ -1,36 +1,119 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Python SAM Application
+Description: Serverless Application Model - Python Application
 Globals:
   Function:
+    Environment:
+      Variables:
+        APP_VERSION:
+          Ref: AppVersion
+    Runtime: python3.7
     Timeout: 3
 Outputs:
-  ReturnCertExpiry:
-    Description: API Gateway endpoint URL for Prod stage for Return Cert Expiry function
+  OleoleoleApi:
+    Description: API Gateway endpoint URL for the Oleoleole function
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
-  ReturnCertExpiryFunction:
-    Description: Return Cert Expiry Lambda Function ARN
+      Fn::Sub: https://${OleoleoleApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/oleoleole/
+  WhoDisApi:
+    Description: API Gateway endpoint URL for the Who Dis function
     Value:
-      Fn::GetAtt:
-      - ReturnCertExpiryFunction
-      - Arn
-  ReturnCertExpiryFunctionIamRole:
-    Description: Implicit IAM Role created for Return Cert Expiry function
-    Value:
-      Fn::GetAtt:
-      - ReturnCertExpiryFunctionRole
-      - Arn
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/whodis/
+Parameters:
+  AppVersion:
+    Default: v1
+    Description: Version of the application
+    Type: String
+  Environment:
+    Default: dev
+    Description: Name of the environment to deploy to
+    Type: String
 Resources:
-  ReturnCertExpiryFunction:
+  OleOleOleFunction:
     Properties:
-      CodeUri: s3://snowco-sam-eu-west-1/835535c6f59f5b8e3ebde1aa0a88016d
+      AutoPublishAlias: live
+      CodeUri: s3://snowco-sam-eu-west-1/dd54d0d1087116bb4b7aeb6520ad492f
+      DeploymentPreference:
+        Hooks:
+          PostTraffic:
+            Ref: OleoleolePostTrafficHookFunction
+          PreTraffic:
+            Ref: OleoleolePreTrafficHookFunction
+        Type: AllAtOnce
       Events:
-        ReturnCertExpiry:
+        Oleoleole:
           Properties:
             Method: get
-            Path: /certchecker
+            Path: /oleoleole
+            RestApiId:
+              Ref: OleoleoleApi
           Type: Api
-      Handler: app.lambda_handler
-      Runtime: python3.7
+      Handler: app.oleoleole
+    Type: AWS::Serverless::Function
+  OleoleoleApi:
+    Properties:
+      Name: oleoleoleApi
+      StageName:
+        Ref: Environment
+    Type: AWS::Serverless::Api
+  OleoleolePostTrafficHookFunction:
+    Properties:
+      CodeUri: s3://snowco-sam-eu-west-1/137eae455c021ae55ec9713341f2aa49
+      DeploymentPreference:
+        Enabled: false
+      FunctionName: CodeDeployHook_postTrafficHook
+      Handler: test_handler.test_oleoleole_version_post_traffic
+      Policies:
+      - Statement:
+        - Action:
+          - codedeploy:PutLifecycleEventHookExecutionStatus
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      - Statement:
+        - Action:
+          - lambda:InvokeFunction
+          Effect: Allow
+          Resource:
+            Ref: OleOleOleFunction.Version
+        Version: '2012-10-17'
+    Type: AWS::Serverless::Function
+  OleoleolePreTrafficHookFunction:
+    Properties:
+      CodeUri: s3://snowco-sam-eu-west-1/2e7f80674e4f58cd6fff5e2782f85af9
+      DeploymentPreference:
+        Enabled: false
+      Environment:
+        Variables:
+          CurrentFunctionVersion:
+            Ref: OleOleOleFunction.Version
+      FunctionName: CodeDeployHook_preTrafficHook
+      Handler: test_handler.test_oleoleole_version_pre_traffic
+      Policies:
+      - Statement:
+        - Action:
+          - codedeploy:PutLifecycleEventHookExecutionStatus
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      - Statement:
+        - Action:
+          - lambda:InvokeFunction
+          Effect: Allow
+          Resource:
+            Ref: OleOleOleFunction.Version
+        Version: '2012-10-17'
+    Type: AWS::Serverless::Function
+  WhoDisFunction:
+    Properties:
+      AutoPublishAlias: live
+      CodeUri: s3://snowco-sam-eu-west-1/5db1ca10f6cdef90107d08f6b40f64cc
+      DeploymentPreference:
+        Type: Canary10Percent5Minutes
+      Events:
+        WhoDis:
+          Properties:
+            Method: get
+            Path: /whodis
+          Type: Api
+      Handler: app.who_dis
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
